@@ -84,10 +84,11 @@ def on_release(key):
 
 def regular():
     while True:
+        #print('regular', buffer)
         apm_check()
         time.sleep(1)
 
-threading.Thread(target=regular)
+threading.Thread(target=regular).start()
 
 # Collect events until released
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:

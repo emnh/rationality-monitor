@@ -47,13 +47,17 @@ if __name__ == "__main__":
         fd.close()
 
         a, b = 0.4, 0.8
-        if apm <= 60:
+        # target apm will be midpoint between min and max
+        minapm = 60
+        maxapm = 180
+
+        if apm <= minapm:
             vol = 2.0
-        elif apm >= 120:
+        elif apm >= maxapm:
             vol = 2.0
         else:
             # apm in 60-120
-            r = (apm - 60) / 60
+            r = (apm - minapm) / (maxapm - minapm)
             # r from 0 to 1
             r = abs(r - 0.5)
             # r distance to 0.5
