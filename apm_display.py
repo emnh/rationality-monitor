@@ -1,6 +1,7 @@
 import pyautogui
 import time
 import tkinter as tk
+import threading
 from pynput import keyboard
 from datetime import datetime
 
@@ -8,7 +9,8 @@ def get_stamp():
     return time.time()
 
 last_alert = 0
-buffer = []
+# Assume recording started a minute ago?
+buffer = [(time.time() - 60.0, None)]
 
 def show_alert(message, timeout):
     root = tk.Tk()
@@ -22,26 +24,27 @@ def show_alert(message, timeout):
 
     root.mainloop()
 
-def on_press(key):
+def apm_check(key=None):
     global last_alert
     global buffer
 
     stamp = get_stamp()
-    buffer.append(stamp)
-    start_time = buffer[0]
+    buffer.append((stamp, key))
+    start_time = buffer[0][0]
     num_keys = 100
     window_len_s = 60
-    keys_pressed = len(buffer)
+    keys_pressed = len([x for x in buffer if x[1] != None])
     # Calculate APM based on the number of keystrokes (customize this based on your needs)
     elapsed_time = stamp - start_time
 
+    #if elapsed_time >= window_len_s:
     if elapsed_time > 0:
         apm = round(keys_pressed * 60 / elapsed_time)  # Calculate APM
         #start_time = time.time()  # Reset the start time
 
         first_not_2 = buffer[:-2]
         last_2 = buffer[-2:]
-        new_buffer = [x for x in first_not_2 if stamp - x <= window_len_s]
+        new_buffer = [x for x in first_not_2 if stamp - x[0] <= window_len_s]
         new_buffer.extend(last_2)
         buffer = new_buffer
         #buffer = buffer[-num_keys:]
@@ -70,10 +73,21 @@ def on_press(key):
             #show_alert("APM: " + str(apm), 1000)
             last_alert = time.time()
 
+def on_press(key):
+    apm_check(key)
+
 def on_release(key):
     # If the key 'Esc' is pressed, stop the listener
-    if key == keyboard.Key.esc:
-        return False
+    #if key == keyboard.Key.esc:
+    #    return False
+    pass
+
+def regular():
+    while True:
+        apm_check()
+        time.sleep(1)
+
+threading.Thread(target=regular)
 
 # Collect events until released
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
