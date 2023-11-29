@@ -1,9 +1,27 @@
+from datetime import datetime
+from pynput import keyboard
+import math
+import numpy as np
 import pyautogui
+import random
+import sounddevice as sd
+import threading
 import time
 import tkinter as tk
-import threading
-from pynput import keyboard
-from datetime import datetime
+import wave
+
+click_enabled = False
+
+def play_audio(samples, sample_rate=44100):
+    """
+    Play audio.
+
+    Parameters:
+        samples (numpy.ndarray): Array of audio samples.
+        sample_rate (int): Sampling rate of the audio (default is 44100 Hz).
+    """
+    sd.play(samples, sample_rate)
+    sd.wait()
 
 def get_stamp():
     return time.time()
@@ -58,7 +76,7 @@ def apm_check(key=None):
             pass
             #print(f'Special key pressed: {key}')
 
-        print("APM", apm, buffer[0], buffer[-1], len(buffer))
+        print("APM", apm, elapsed_time, keys_pressed, len(buffer), buffer[0], buffer[-1])
         dt_object = datetime.fromtimestamp(stamp)
         formatted_time = dt_object.strftime("%Y-%m-%d %H:%M:%S")
         logfile = open('log_of_apm.txt', 'a')
@@ -73,8 +91,16 @@ def apm_check(key=None):
             #show_alert("APM: " + str(apm), 1000)
             last_alert = time.time()
 
+click = (None, None)
 def on_press(key):
+    global click
     apm_check(key)
+    if click_enabled:
+        # Play the audio using sounddevice
+        audio_array, frame_rate = click
+        sd.play(audio_array, samplerate=frame_rate)
+        # Wait until the audio is finished playing
+        #sd.wait()
 
 def on_release(key):
     # If the key 'Esc' is pressed, stop the listener
@@ -87,6 +113,29 @@ def regular():
         #print('regular', buffer)
         apm_check()
         time.sleep(1)
+
+def load_wav(file_path):
+    # Read WAV file
+    with wave.open(file_path, 'rb') as wf:
+        channels = wf.getnchannels()
+        sample_width = wf.getsampwidth()
+        frame_rate = wf.getframerate()
+        frames = wf.getnframes()
+
+        # Read audio data
+        audio_data = wf.readframes(frames)
+
+    # Convert audio data to numpy array
+    audio_array = np.frombuffer(audio_data, dtype=np.int16)
+
+    # Reshape array based on the number of channels
+    if channels == 2:
+        audio_array = audio_array.reshape(-1, 2)
+
+    return (audio_array, frame_rate)
+
+if click_enabled:
+    click = load_wav('click.wav')
 
 threading.Thread(target=regular).start()
 
