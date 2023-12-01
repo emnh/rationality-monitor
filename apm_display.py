@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from datetime import datetime
 from pynput import keyboard
 import math
