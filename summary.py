@@ -9,13 +9,18 @@ apm_values = []
 
 with open('log_of_apm.txt', 'r') as file:
     next(file)  # Skip header line
+    errcount = 0
     for line in file:
         parts = line.strip().split(',')
         timestamp_str, apm_str = parts[0], parts[1]
-        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
-        apm = int(apm_str.split(':')[1])
-        timestamps.append(timestamp)
-        apm_values.append(apm)
+        try:
+            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+            apm = int(apm_str.split(':')[1])
+            timestamps.append(timestamp)
+            apm_values.append(apm)
+        except:
+            errcount += 1
+    print("errcount", errcount)
 
 # Create a dictionary to store hourly average APM
 hourly_average_apm = defaultdict(list)
