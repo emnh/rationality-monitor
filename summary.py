@@ -22,6 +22,12 @@ with open('log_of_apm.txt', 'r') as file:
             errcount += 1
     print("errcount", errcount)
 
+#########
+######### NOTE THAT I AM COUNTING MINUTES NOW NOT HOURS:
+######### EVERY OCCURENCE OR SO OF HOUR IN VARIABLES SHOULD
+######### BE REPLACED BY MINUTES
+#########
+
 # Create a dictionary to store hourly average APM
 hourly_average_apm = defaultdict(list)
 for timestamp, apm in zip(timestamps, apm_values):
@@ -33,18 +39,19 @@ for timestamp, apm in zip(timestamps, apm_values):
 for hour, values in hourly_average_apm.items():
     hourly_average_apm[hour] = sum(values) / len(values)
 
-# Count the number of hours per day with average APM over 10
-hours_over_10_per_day = defaultdict(int)
+# Count the number of hours per day with average APM over N
+N = 0
+hours_over_N_per_day = defaultdict(int)
 for hour, average_apm in hourly_average_apm.items():
-    if average_apm > 10:
-        hours_over_10_per_day[hour.date()] += 1
+    if average_apm > N:
+        hours_over_N_per_day[hour.date()] += 1
 
 # Print the results
 csum = 0
 days = 0
-for date, count in hours_over_10_per_day.items():
-    print(f"{date}: {count} minutes with average APM over 10")
+for date, count in hours_over_N_per_day.items():
+    print(f"{date}: {count} minutes with average APM over N")
     csum += count
     days += 1
-cavg = csum / days / 60.0
+cavg = round(csum / days / 60.0, 2)
 print(f"Average productivity: {cavg} hours per day over {days}")
