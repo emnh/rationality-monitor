@@ -32,6 +32,7 @@ with open('log_of_apm.txt', 'r') as file:
 hourly_average_apm = defaultdict(list)
 for timestamp, apm in zip(timestamps, apm_values):
     #hour_key = timestamp.replace(minute=0, second=0, microsecond=0)
+    #hour_key = timestamp.replace(hour=0, minute=0, second=0, microsecond=0)
     hour_key = timestamp.replace(second=0, microsecond=0)
     hourly_average_apm[hour_key].append(apm)
 
@@ -54,4 +55,5 @@ for date, count in hours_over_N_per_day.items():
     csum += count
     days += 1
 cavg = round(csum / days / 60.0, 2)
+#print(csum, count)
 print(f"Average productivity: {cavg} hours per day over {days}")
